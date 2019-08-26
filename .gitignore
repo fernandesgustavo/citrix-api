@@ -1,3 +1,7 @@
-.venv
 venv/
+__pycache__/
+lib/
+lib64
+config.cfg
 .vscode
+.venv
