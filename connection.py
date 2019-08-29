@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 from configparser import ConfigParser
 
-class Session:
+class Connection:
     
     def __init__(self, company, customer, client_id, client_secret, token, token_created):
 
@@ -45,29 +45,15 @@ class Session:
             with open('./config.cfg', 'w') as f:
                 config.write(f)
     
-    def sessions_disconnected(self):
+    def connections_yesterday(self):
 
-        url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                    '$filter': 'ConnectionState eq 2'}
+        url_final = '{}{}'.format(self.__url_metrics, 'Connections')
+        params = {'$top': 1,
+                  '$count': 'true',
+                  '$filter': 'LogOnStartDate ge 2019-08-28 and LogOnStartDate lt 2019-08-29',
+                  '$select': 'LogOnStartDate'}
         response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
-
-    def sessions_terminated(self):
-
-        url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                    '$filter': 'ConnectionState eq 3'}
-        response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
-
-    def sessions_active(self):
-
-        url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                  '$filter': 'ConnectionState eq 5'}
-        response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
+        return (response.json()['@odata.count'])
 
 if __name__ == '__main__':
 
@@ -78,7 +64,7 @@ if __name__ == '__main__':
 
     # SOLOR
     company = sys.argv[1]
-    # active
+    # connections_day
     metric = sys.argv[2]
 
     # obtem as métricas através do arquivo de configuração
@@ -89,12 +75,8 @@ if __name__ == '__main__':
     token_created = config.get(company, 'token_created')
 
     # cria um objeto do tipo Session
-    session = Session(company, customer, client_id, client_secret, token, token_created)
-    session.generateToken()
+    connection = Connection(company, customer, client_id, client_secret, token, token_created)
+    connection.generateToken()
 
-    if metric == 'disconnected':
-        print('{}'.format(session.sessions_disconnected()))
-    elif metric == 'terminated':
-        print('{}'.format(session.sessions_terminated()))
-    elif metric == 'active':
-        print('{}'.format(session.sessions_active()))
+    if metric == 'yesterday':
+        print('{}'.format(connection.connections_yesterday()))
