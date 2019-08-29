@@ -7,9 +7,10 @@ from configparser import ConfigParser
 
 class Session:
     
-    def __init__(self, company, customer, client_id, client_secret, token, token_created):
+    def __init__(self, company, file, customer, client_id, client_secret, token, token_created):
 
         self.__company = company
+        self.__file = file
         self.__token = token
         self.__token_created = datetime.strptime(token_created, '%Y-%m-%d %H:%M:%S.%f')
         self.__date_now = datetime.now()
@@ -30,7 +31,7 @@ class Session:
         if (token_expired):
 
             config = ConfigParser()
-            config.read('./config.cfg')
+            config.read(self.__file)
             body = {'clientId': self.__client_id,
                     'clientSecret': self.__client_secret}
             headers = {'Content-Type': 'application/json'}
@@ -42,7 +43,7 @@ class Session:
             # atualiza o arquivo de configuração com o novo token
             config.set(self.__company, 'token', self.__token)
             config.set(self.__company, 'token_created', str(self.__date_now))
-            with open('./config.cfg', 'w') as f:
+            with open(self.__file, 'w') as f:
                 config.write(f)
     
     def sessions_disconnected(self):
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     token_created = config.get(company, 'token_created')
 
     # cria um objeto do tipo Session
-    session = Session(company, customer, client_id, client_secret, token, token_created)
+    session = Session(company, file, customer, client_id, client_secret, token, token_created)
     session.generateToken()
 
     if metric == 'disconnected':
