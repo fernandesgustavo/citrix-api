@@ -15,6 +15,7 @@ class Connection:
         self.__token = token
         self.__token_created = datetime.strptime(token_created, '%Y-%m-%d %H:%M:%S.%f')
         self.__date_now = datetime.now()
+        self.__date_today = date.today()
         self.__customer = customer
         self.__client_id = client_id
         self.__client_secret = client_secret
@@ -49,11 +50,10 @@ class Connection:
     
     def connections_yesterday(self):
         url_final = '{}{}'.format(self.__url_metrics, 'Connections')
-        date_now = date.today()
-        date_yesterday = date_now - timedelta(days=1)
+        date_yesterday = self.__date_today - timedelta(days=1)
         params = {'$top': 1,
                   '$count': 'true',
-                  '$filter': 'LogOnStartDate ge {} and LogOnStartDate lt {}'.format(date_yesterday, date_now),
+                  '$filter': 'LogOnStartDate ge {} and LogOnStartDate lt {}'.format(date_yesterday, self.__date_today),
                   '$select': 'LogOnStartDate'}
         response = requests.get(url_final, headers=self.__headers, params=params)
         return (response.json()['@odata.count'])

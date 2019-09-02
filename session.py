@@ -1,6 +1,7 @@
 import json
 import requests
 import sys
+from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from configparser import ConfigParser
@@ -14,6 +15,7 @@ class Session:
         self.__token = token
         self.__token_created = datetime.strptime(token_created, '%Y-%m-%d %H:%M:%S.%f')
         self.__date_now = datetime.now()
+        self.__date_today = date.today()
         self.__customer = customer
         self.__client_id = client_id
         self.__client_secret = client_secret
@@ -49,26 +51,32 @@ class Session:
     def sessions_disconnected(self):
 
         url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                    '$filter': 'ConnectionState eq 2'}
+        params = {'$top': 1,
+                  '$count': 'true',
+                  '$filter': 'ConnectionState eq 2 and StartDate ge {}'.format(self.__date_today),
+                  '$select': 'ConnectionState'}
         response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
+        return (response.json()['@odata.count'])
 
     def sessions_terminated(self):
 
         url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                    '$filter': 'ConnectionState eq 3'}
+        params = {'$top': 1,
+                  '$count': 'true',
+                  '$filter': 'ConnectionState eq 3 and StartDate ge {}'.format(self.__date_today),
+                  '$select': 'ConnectionState'}
         response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
+        return (response.json()['@odata.count'])
 
     def sessions_active(self):
 
         url_final = '{}{}'.format(self.__url_metrics, 'Sessions')
-        params = {'$apply': 'groupby((ConnectionState),aggregate(SessionKey with countdistinct as NumberOfSessions))',
-                  '$filter': 'ConnectionState eq 5'}
+        params = {'$top': 1,
+                  '$count': 'true',
+                  '$filter': 'ConnectionState eq 5 and StartDate ge {}'.format(self.__date_today),
+                  '$select': 'ConnectionState'}
         response = requests.get(url_final, headers=self.__headers, params=params)
-        return (response.json()['value'][0]['NumberOfSessions'])
+        return (response.json()['@odata.count'])
 
 if __name__ == '__main__':
 
