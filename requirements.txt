@@ -51,6 +51,6 @@ Routes==2.4.1
 setproctitle==1.1.10
 six==1.11.0
 texttable==0.9.1
-urllib3==1.24.2
+urllib3==1.26.5
 virtualenv==16.2.0
 websocket-client==0.44.0
